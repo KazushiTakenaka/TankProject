@@ -25,6 +25,7 @@ void advance_02(int ad_int);
 void back_01(int bk_int);
 void back_02(int bk_int);
 int conversion(int slide_val);
+int motorValOut(int motorVal, int slideVal);
 void motorStop();
 void buzzerOn();
 void buzzerOff();
@@ -39,13 +40,11 @@ void setup() {
   EspBTSetUpClass EspBTSetObj;
   EspBTSetObj.getMacAddress();
   EspBTSetObj.mainUnitSetUp(address);
-  // SerialBT.begin("ESP32");
   pinMode(IN1, OUTPUT);
   pinMode(IN2, OUTPUT);
   pinMode(IN3, OUTPUT);
   pinMode(IN4, OUTPUT);
   pinMode(BUZZER, OUTPUT);
-  // pinMode(RED_LED, OUTPUT);
   pinMode(BATTERY, INPUT);
 }
 
@@ -86,8 +85,12 @@ ReceiveData beforeReceiveData;
 //BATTRY電圧確認用
 float battery_value = 0;
 
-int motorVal_01;
-int motorVal_02;
+int motorVal_01 = 0;
+int motorVal_02 = 0;
+int beforeMotorVal_01 = 0;
+int beforeMotorVal_02 = 0;
+int slideVal_01;
+int slideVal_02;
 int motorValDiff_01 = 0;
 int motorValDiff_02 = 0;
 
@@ -109,17 +112,31 @@ void loop() {
       memcpy(&receiveData, buffer, sizeof(ReceiveData));
       if (j == 0) {
         beforeReceiveData = receiveData;
+        // beforeReceiveData.slideVal1 = 0;
         j = 1;
       }
 
       //テストコードS
-      motorVal_01 = conversion(receiveData.slideVal1);
-      motorVal_02 = conversion(receiveData.slideVal2);
-      motorValDiff_01 = motorVal_01 - motorValDiff_01;
+      slideVal_01 = conversion(receiveData.slideVal1);
+      slideVal_02 = conversion(receiveData.slideVal2);
+      motorVal_01 = motorValOut(motorVal_01, slideVal_01);
+      motorVal_02 = motorValOut(motorVal_02, slideVal_02);
+      // motorValDiff_01 = slideVal_01 - motorVal_01;
+      // motorValDiff_02 = slideVal_02 - motorVal_02;
+      // if (motorValDiff_01 >= 5) {
+      //   motorVal_01 = motorVal_01 + 4;
+      // }else if (motorValDiff_01 <= -5) {
+      //   motorVal_01 = motorVal_01 - 4;
+      // }else {
+      //   motorVal_01 =slideVal_01;
+      // }
+      
+      
 
       Serial.print(motorVal_01);
-      Serial.print(motorValDiff_01);
-      Serial.println(motorVal_02);
+      Serial.print("  ");
+      Serial.println(slideVal_01);
+      // Serial.println(motorVal_02);
       //テストコードD
 
       /*モータ出力操作、前進後進切替*/
@@ -228,6 +245,18 @@ int conversion(int slideVal){
     slideVal = map(slideVal, 128, 255, 0, 255);
     return slideVal;
   }
+}
+
+int motorValOut(int motorVal, int slideVal){
+  int acceleration = 2;
+  int motorDiff = slideVal - motorVal;
+  if (motorDiff >= acceleration) {
+        return motorVal = motorVal + acceleration;
+      }else if (motorDiff <= -acceleration) {
+        return motorVal = motorVal - acceleration;
+      }else {
+        return motorVal =slideVal;
+      }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
 }
 
 void motorStop() {
