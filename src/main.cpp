@@ -25,7 +25,7 @@ void advance_02(int ad_int);
 void back_01(int bk_int);
 void back_02(int bk_int);
 int conversion(int slide_val);
-int motorValOut(int motorVal, int slideVal);
+int motorValOut(int motorVal, int slideVal, int acceleration);
 void motorStop();
 void buzzerOn();
 void buzzerOff();
@@ -93,6 +93,7 @@ int slideVal_01;
 int slideVal_02;
 int motorValDiff_01 = 0;
 int motorValDiff_02 = 0;
+int acceleration_ = 0;
 
 void loop() {
   /*
@@ -112,50 +113,36 @@ void loop() {
       memcpy(&receiveData, buffer, sizeof(ReceiveData));
       if (j == 0) {
         beforeReceiveData = receiveData;
-        // beforeReceiveData.slideVal1 = 0;
         j = 1;
       }
-
-      //テストコードS
+      
+      if (receiveData.sld_sw1_2 == 0) {
+        acceleration_ = 1;
+      }else if (receiveData.sld_sw1_1 == 0) {
+        acceleration_ = 3;
+      }else {
+        acceleration_ = 2;
+      }
+      
+      
+      /*スライドボリュームの値を取得後、出力用の値に変換*/
       slideVal_01 = conversion(receiveData.slideVal1);
       slideVal_02 = conversion(receiveData.slideVal2);
-      motorVal_01 = motorValOut(motorVal_01, slideVal_01);
-      motorVal_02 = motorValOut(motorVal_02, slideVal_02);
-      // motorValDiff_01 = slideVal_01 - motorVal_01;
-      // motorValDiff_02 = slideVal_02 - motorVal_02;
-      // if (motorValDiff_01 >= 5) {
-      //   motorVal_01 = motorVal_01 + 4;
-      // }else if (motorValDiff_01 <= -5) {
-      //   motorVal_01 = motorVal_01 - 4;
-      // }else {
-      //   motorVal_01 =slideVal_01;
-      // }
-      
-      
+      motorVal_01 = motorValOut(motorVal_01, slideVal_01, acceleration_);
+      motorVal_02 = motorValOut(motorVal_02, slideVal_02, acceleration_);
 
-      Serial.print(motorVal_01);
-      Serial.print("  ");
-      Serial.println(slideVal_01);
-      // Serial.println(motorVal_02);
-      //テストコードD
-
-      /*モータ出力操作、前進後進切替*/
+      /*モータ出力操作、前進後進切替(モータのつなぎ方によっては逆になるかも)*/
       if (motorVal_01 >= 0) {
-        // Serial.print("前");
         advance_01(motorVal_01);
       }else {
-        // Serial.print("後");
         back_01(abs(motorVal_01));
       }
       if (motorVal_02 >= 0) {
-        // Serial.print("前");
         advance_02(motorVal_02);
       }else {
-        // Serial.print("後");
         back_02(abs(motorVal_02));
       }
       
-      beforeReceiveData = receiveData;
 
       /*ブザー操作
       電池の電圧が下がったらブザーが鳴る*/
@@ -164,7 +151,8 @@ void loop() {
       }else {
         buzzerOff();
       }
-      #if 0
+      beforeReceiveData = receiveData;
+      #if 1
       Serial.print(receiveData.sld_sw1_1);
       Serial.print(receiveData.sld_sw1_2);
       Serial.print(receiveData.sld_sw2_1);
@@ -247,8 +235,7 @@ int conversion(int slideVal){
   }
 }
 
-int motorValOut(int motorVal, int slideVal){
-  int acceleration = 2;
+int motorValOut(int motorVal, int slideVal, int acceleration){
   int motorDiff = slideVal - motorVal;
   if (motorDiff >= acceleration) {
         return motorVal = motorVal + acceleration;
@@ -281,15 +268,10 @@ void buzzerOff() {
 float getVoltage() {
   // ADCで値を読み取る
   int adc_value = analogRead(BATTERY);
-  const float R1 = 1000;
-  const float R2 = 1000;
+  const float R1 = 10000;
+  const float R2 = 10000;
 
   // 電圧を計算
   float voltage = adc_value * 3.3 / 4095.0 * (R1 + R2) / R2;
-
-  // Serial.print(adc_value);
-  // Serial.print("  ");
-  // Serial.println(voltage);
-
   return voltage;
 }
