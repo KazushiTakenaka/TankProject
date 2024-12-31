@@ -46,6 +46,10 @@ void setup() {
   pinMode(IN4, OUTPUT);
   pinMode(BUZZER, OUTPUT);
   pinMode(BATTERY, INPUT);
+  analogWrite(IN1, 255);
+  analogWrite(IN2, 255);
+  analogWrite(IN3, 255);
+  analogWrite(IN4, 255);
 }
 
 int motorValue = 0;
@@ -117,11 +121,11 @@ void loop() {
       }
       
       if (receiveData.sld_sw1_2 == 0) {
-        acceleration_ = 1;
-      }else if (receiveData.sld_sw1_1 == 0) {
-        acceleration_ = 3;
-      }else {
         acceleration_ = 2;
+      }else if (receiveData.sld_sw1_1 == 0) {
+        acceleration_ = 10;
+      }else {
+        acceleration_ = 4;
       }
       
       
@@ -212,8 +216,8 @@ void back_01(int bk_int) {
   モーター後進(逆になるかも)
   int bk_int:モーターの回転量
   */
-  analogWrite(IN1, bk_int);
-  analogWrite(IN2, 0);
+  analogWrite(IN1, 0);
+  analogWrite(IN2, bk_int);
 }
 
 void back_02(int bk_int) {
@@ -221,8 +225,8 @@ void back_02(int bk_int) {
   モーター後進(逆になるかも)
   int bk_int:モーターの回転量
   */
-  analogWrite(IN3, bk_int);
-  analogWrite(IN4, 0);
+  analogWrite(IN3, 0);
+  analogWrite(IN4, bk_int);
 }
 
 int conversion(int slideVal){
