@@ -33,6 +33,10 @@ float getVoltage();
 
 void setup() {
   Serial.begin(115200);
+  analogWrite(IN1, 0);
+  analogWrite(IN2, 0);
+  analogWrite(IN3, 0);
+  analogWrite(IN4, 0);
   Serial.println("BOOT_ESP32");
   /*Secretファイルから相手側のアドレスを取得後Bluetooth親機通信設定*/
   String MACadd = MAC_ADDRESS_STR;
@@ -46,10 +50,6 @@ void setup() {
   pinMode(IN4, OUTPUT);
   pinMode(BUZZER, OUTPUT);
   pinMode(BATTERY, INPUT);
-  analogWrite(IN1, 255);
-  analogWrite(IN2, 255);
-  analogWrite(IN3, 255);
-  analogWrite(IN4, 255);
 }
 
 int motorValue = 0;
